@@ -1,0 +1,39 @@
+{
+  "name": "proxmox-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "proxmox-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "release:archive": "node scripts/build-release-archive.mjs",
+    "verify:release-archive": "node scripts/verify-release-archive.mjs",
+    "validate:docs": "node scripts/validate-docs.mjs",
+    "validate:governance": "node scripts/validate-branch-governance.mjs",
+    "validate:release": "node scripts/validate-release-workflow.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@theorvane/type-mcp": "0.3.1",
+    "zod": "4.4.3"
+  },
+  "overrides": {
+    "fast-uri": "3.1.5",
+    "ip-address": "10.3.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.4",
+    "@types/node": "22.15.3",
+    "tsup": "8.5.1",
+    "typescript": "5.8.3",
+    "vitest": "4.1.10"
+  }
+}

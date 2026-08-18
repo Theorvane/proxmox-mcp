@@ -1,0 +1,15 @@
+name: GitHub Release archive
+on:
+  push: { branches: [main] }
+permissions: { contents: write }
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@1e60f620b9541d5f0a0dca1c4cdb1552b9c0a8f5
+        with: { node-version: 22, cache: npm }
+      - run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && npm ci && npm run build && npm run release:archive && npm run verify:release-archive
+      - uses: softprops/action-gh-release@6cbd405e2e6e3b641cb130a1ac452b45297f1638
+        with: { files: release/proxmox-mcp-*.tar.gz* }
