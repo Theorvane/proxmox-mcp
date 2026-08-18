@@ -14,6 +14,7 @@ Deliver a local, stdio-based TypeScript MCP server that wraps the Proxmox VE RES
 
 - Run locally over stdio, compatible with MCP clients such as Claude Desktop, Codex, and Hermes.
 - Use `@theorvane/type-mcp` for decorator-driven tool definitions and the official MCP SDK runtime.
+- Distribute immutable versioned release artifacts exclusively through GitHub Releases. npm publication is explicitly out of scope.
 - Read credentials only from environment variables:
   - `PROXMOX_BASE_URL` — HTTPS origin of the Proxmox VE API.
   - `PROXMOX_TOKEN_ID` — token identifier in `user@realm!token-name` form.
@@ -56,6 +57,15 @@ Missing confirmation returns a stable MCP error that names the required fields a
 - Upstream non-success responses become generic, actionable MCP errors with the HTTP status and operation category, but no credentials or server-provided detail that may contain secrets.
 - Network, TLS, JSON-decoding, and unexpected handler failures are normalized in the same manner.
 - TLS certificate verification is enabled by default. Turning it off requires `PROXMOX_TLS_VERIFY=false` and must produce a startup warning without disclosing credentials.
+
+## Distribution and directory listing contract
+
+- A release workflow may run only after a reviewed `dev` → `main` promotion. It builds a self-contained, versioned release archive containing production dependencies, `dist/`, executable launch scripts, a checksum manifest, the installation guide, and the canonical server metadata.
+- The workflow attaches the archive and its SHA-256 checksum to an immutable GitHub Release that targets the exact `main` commit. A clean temporary directory must download the release asset, verify its checksum, configure required environment variables, and perform an MCP stdio initialization/tool-list check before the release is considered verified.
+- The source repository remains the canonical release record. Do not run `npm publish`, add npm publication workflows, or claim an npm package exists.
+- ClawHub receives a deliberately thin plugin wrapper that downloads a user-selected, checksum-verified GitHub Release artifact and registers its local stdio command. The wrapper never embeds a token and never substitutes an unpinned branch checkout for a release asset.
+- LobeHub and MCP Server Hub directory entries must use only the verified GitHub Release installation command, canonical repository URL, exact release version, screenshots/icons, capability list, and safety disclosures. Their current submission schemas and automation support must be checked at submission time; no unsupported manifest or automatic publisher is assumed in advance.
+- Official MCP Registry publication is deferred unless a supported package descriptor is available without npm. It is not a release prerequisite for the three requested directories.
 
 ## Architecture
 
@@ -101,12 +111,14 @@ Required proof:
 5. Each destructive tool rejects missing `confirm: true` without invoking fetch.
 6. Confirmed destructive calls include an exact node and VMID in their API route.
 7. Authorization values and raw upstream failure bodies never appear in tool errors.
-8. The stdio entrypoint compiles and package metadata exposes a runnable CLI.
-9. `biome check .`, type checking, tests, build, package-export verification, package-consumer verification, and production dependency audit pass.
+8. The stdio entrypoint compiles; a release archive includes the complete runnable distribution, checksum, and installation metadata.
+9. `biome check .`, type checking, tests, build, release-archive verification, and production dependency audit pass.
 
 ## Explicit exclusions
 
 - Remote Streamable HTTP hosting and tenant/client authentication.
+- npm Registry publication, npm-package installation instructions, and npm publication automation.
+- Official MCP Registry registration unless a non-npm supported package descriptor is separately approved.
 - User/password ticket authentication and Proxmox realm management.
 - Backup/restore, firewall, HA, Ceph, SDN, pools, and bulk operation orchestration.
 - A generic arbitrary-method/path execution tool.
