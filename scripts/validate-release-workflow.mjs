@@ -17,6 +17,11 @@ if (
   throw new Error("release promotion must expose the release-promotion check");
 if (
   !release.includes("npm run verify:release-archive") ||
+  !release.includes("node scripts/release-intent.mjs") ||
+  !release.includes("steps.release-intent.outputs.release == 'true'") ||
+  !release.includes(
+    "No release inputs changed; skipping immutable release reconciliation.",
+  ) ||
   !release.includes("const version = pkg.version") ||
   !release.includes('TAG="v${VERSION}"') ||
   !release.includes('git tag -a "$TAG" "$GITHUB_SHA"') ||

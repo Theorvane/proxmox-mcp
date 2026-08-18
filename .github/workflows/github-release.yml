@@ -10,9 +10,22 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with: { node-version: 22, cache: npm }
-      - run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && npm ci && npm run build && npm run release:archive && npm run verify:release-archive
+      - id: release-intent
+        name: Determine release intent
+        env:
+          EVENT_BEFORE: ${{ github.event.before }}
+        run: node scripts/release-intent.mjs "$EVENT_BEFORE" "$GITHUB_SHA"
+      - name: Report skipped immutable release reconciliation
+        if: steps.release-intent.outputs.release != 'true'
+        run: |
+          MESSAGE='No release inputs changed; skipping immutable release reconciliation.'
+          echo "$MESSAGE"
+          echo "$MESSAGE" >> "$GITHUB_STEP_SUMMARY"
+      - if: steps.release-intent.outputs.release == 'true'
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && npm ci && npm run build && npm run release:archive && npm run verify:release-archive
       - id: version
         name: Derive immutable SemVer tag from package.json
+        if: steps.release-intent.outputs.release == 'true'
         run: |
           VERSION="$(node -e '
             const pkg = JSON.parse(require("node:fs").readFileSync("package.json", "utf8"));
@@ -24,6 +37,7 @@ jobs:
           TAG="v${VERSION}"
           printf 'version=%s\ntag=%s\n' "$VERSION" "$TAG" >> "$GITHUB_OUTPUT"
       - name: Verify or create the immutable release tag
+        if: steps.release-intent.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
@@ -43,6 +57,7 @@ jobs:
             git push origin "refs/tags/$TAG"
           fi
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        if: steps.release-intent.outputs.release == 'true'
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}

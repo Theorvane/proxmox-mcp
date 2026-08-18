@@ -9,6 +9,10 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, relative, resolve } from "node:path";
+import {
+  releaseArchiveFiles,
+  releaseInstallationGuide,
+} from "./release-archive-inputs.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
@@ -20,12 +24,11 @@ if (!existsSync(join(root, "dist")))
   throw new Error("Build dist before creating the release archive");
 rmSync(output, { recursive: true, force: true });
 mkdirSync(stage, { recursive: true });
-for (const file of ["dist", "LICENSE", "package.json", "package-lock.json"])
+for (const file of releaseArchiveFiles.filter(
+  (file) => file !== releaseInstallationGuide,
+))
   cpSync(join(root, file), join(stage, file), { recursive: true });
-cpSync(
-  join(root, "docs/guides/github-release-installation.md"),
-  join(stage, "INSTALLATION.md"),
-);
+cpSync(join(root, releaseInstallationGuide), join(stage, "INSTALLATION.md"));
 const productionPackages = execFileSync(
   "npm",
   ["ls", "--omit=dev", "--parseable", "--all"],
