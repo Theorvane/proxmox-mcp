@@ -1,0 +1,47 @@
+name: GitHub Release archive
+on:
+  push: { branches: [main] }
+permissions: { contents: write }
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with: { node-version: 22, cache: npm }
+      - run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && npm ci && npm run build && npm run release:archive && npm run verify:release-archive
+      - id: version
+        name: Derive immutable SemVer tag from package.json
+        run: |
+          VERSION="$(node -e '
+            const pkg = JSON.parse(require("node:fs").readFileSync("package.json", "utf8"));
+            const version = pkg.version;
+            const semver = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/;
+            if (typeof version !== "string" || !semver.test(version)) process.exit(1);
+            process.stdout.write(version);
+          ')"
+          TAG="v${VERSION}"
+          printf 'version=%s\ntag=%s\n' "$VERSION" "$TAG" >> "$GITHUB_OUTPUT"
+      - name: Verify or create the immutable release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          RELEASE_TARGET="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish 2>/dev/null || true)"
+          if test -n "$RELEASE_TARGET"; then
+            git fetch --no-tags origin "$RELEASE_TARGET"
+            test "$(git rev-parse "$RELEASE_TARGET^{commit}")" = "$GITHUB_SHA"
+          fi
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            git fetch --no-tags origin "refs/tags/$TAG:refs/tags/$TAG"
+            test "$(git rev-parse "$TAG^{commit}")" = "$GITHUB_SHA"
+          else
+            git tag -a "$TAG" "$GITHUB_SHA" -m "Release $TAG"
+            git push origin "refs/tags/$TAG"
+          fi
+      - uses: softprops/action-gh-release@6cbd405e2e6e3b641cb130a1ac452b45297f1638
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          files: release/proxmox-mcp-*.tar.gz*
