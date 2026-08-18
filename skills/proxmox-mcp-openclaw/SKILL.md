@@ -18,7 +18,7 @@ metadata:
 
 This skill installs the immutable `v0.1.1` release from GitHub, verifies its published SHA-256 checksum, and registers the local stdio executable with the supported `openclaw mcp add` command. It is not an OpenClaw plugin or npm package.
 
-The release source is [Theorvane/proxmox-mcp](https://github.com/Theorvane/proxmox-mcp) at immutable `main` commit `6bb3d53a1ee20b9e0a8f885846148aeaa58f5520`, release asset path `proxmox-mcp-0.1.1.tar.gz`. This skill has not yet been published to ClawHub.
+The release source is [Theorvane/proxmox-mcp](https://github.com/Theorvane/proxmox-mcp) at immutable `main` commit `6bb3d53a1ee20b9e0a8f885846148aeaa58f5520`, release asset path `proxmox-mcp-0.1.1.tar.gz`. Verify any ClawHub listing against this repository and pinned release before using it.
 
 ## Install
 
