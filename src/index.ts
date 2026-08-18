@@ -10,10 +10,6 @@ import { ProxmoxMcpServer } from "./proxmox-server.js";
 
 export async function start(): Promise<void> {
   const config = loadProxmoxConfig(process.env);
-  if (!config.tlsVerify)
-    process.stderr.write(
-      "Warning: PROXMOX_TLS_VERIFY=false disables TLS certificate verification.\n",
-    );
   const client = new ProxmoxClient(config);
   const server = await createMcpServer(ProxmoxMcpServer, {
     resolve: () => Object.assign(new ProxmoxMcpServer(), { client }),

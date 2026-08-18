@@ -1,13 +1,11 @@
 import { McpServer, McpTool } from "@theorvane/type-mcp";
 import { z } from "zod";
+import { apiPath, nodeSchema } from "./node.js";
 import type { ProxmoxClient } from "./proxmox-client.js";
 import { requireDestructiveConfirmation } from "./safety.js";
 import { taskReceipt } from "./task-receipt.js";
 
-const node = z
-  .string()
-  .min(1)
-  .regex(/^[^*/]+$/, "node must be an exact node name");
+const node = nodeSchema;
 const target = z.object({ node, vmid: z.number().int().positive() });
 const confirmation = target.extend({ confirm: z.literal(true) });
 const text = (value: unknown) => JSON.stringify(value);
@@ -45,9 +43,7 @@ export class ProxmoxMcpServer {
     input: z.object({ node }),
   })
   async nodeStatus({ node: nodeName }: { node: string }) {
-    return text(
-      await this.client.get(`nodes/${encodeURIComponent(nodeName)}/status`),
-    );
+    return text(await this.client.get(apiPath("nodes", nodeName, "status")));
   }
   @McpTool({
     name: "list_storage",
@@ -55,9 +51,7 @@ export class ProxmoxMcpServer {
     input: z.object({ node }),
   })
   async listStorage({ node: nodeName }: { node: string }) {
-    return text(
-      await this.client.get(`nodes/${encodeURIComponent(nodeName)}/storage`),
-    );
+    return text(await this.client.get(apiPath("nodes", nodeName, "storage")));
   }
   @McpTool({
     name: "list_qemu",
@@ -65,9 +59,7 @@ export class ProxmoxMcpServer {
     input: z.object({ node }),
   })
   async listQemu({ node: nodeName }: { node: string }) {
-    return text(
-      await this.client.get(`nodes/${encodeURIComponent(nodeName)}/qemu`),
-    );
+    return text(await this.client.get(apiPath("nodes", nodeName, "qemu")));
   }
   @McpTool({
     name: "list_lxc",
@@ -75,9 +67,7 @@ export class ProxmoxMcpServer {
     input: z.object({ node }),
   })
   async listLxc({ node: nodeName }: { node: string }) {
-    return text(
-      await this.client.get(`nodes/${encodeURIComponent(nodeName)}/lxc`),
-    );
+    return text(await this.client.get(apiPath("nodes", nodeName, "lxc")));
   }
   @McpTool({
     name: "list_tasks",
@@ -85,9 +75,7 @@ export class ProxmoxMcpServer {
     input: z.object({ node }),
   })
   async listTasks({ node: nodeName }: { node: string }) {
-    return text(
-      await this.client.get(`nodes/${encodeURIComponent(nodeName)}/tasks`),
-    );
+    return text(await this.client.get(apiPath("nodes", nodeName, "tasks")));
   }
   @McpTool({
     name: "task_status",
@@ -97,7 +85,7 @@ export class ProxmoxMcpServer {
   async taskStatus({ node: nodeName, upid }: { node: string; upid: string }) {
     return text(
       await this.client.get(
-        `nodes/${encodeURIComponent(nodeName)}/tasks/${encodeURIComponent(upid)}/status`,
+        apiPath("nodes", nodeName, "tasks", upid, "status"),
       ),
     );
   }
@@ -109,7 +97,7 @@ export class ProxmoxMcpServer {
   async qemuStart(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/qemu/${input.vmid}/status/start`,
+        apiPath("nodes", input.node, "qemu", input.vmid, "status", "start"),
       ),
       "qemu",
       input.node,
@@ -124,7 +112,7 @@ export class ProxmoxMcpServer {
   async qemuShutdown(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/qemu/${input.vmid}/status/shutdown`,
+        apiPath("nodes", input.node, "qemu", input.vmid, "status", "shutdown"),
       ),
       "qemu",
       input.node,
@@ -135,7 +123,7 @@ export class ProxmoxMcpServer {
   async qemuStop(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/qemu/${input.vmid}/status/stop`,
+        apiPath("nodes", input.node, "qemu", input.vmid, "status", "stop"),
       ),
       "qemu",
       input.node,
@@ -150,7 +138,7 @@ export class ProxmoxMcpServer {
   async qemuReboot(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/qemu/${input.vmid}/status/reboot`,
+        apiPath("nodes", input.node, "qemu", input.vmid, "status", "reboot"),
       ),
       "qemu",
       input.node,
@@ -165,7 +153,7 @@ export class ProxmoxMcpServer {
   async lxcStart(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/lxc/${input.vmid}/status/start`,
+        apiPath("nodes", input.node, "lxc", input.vmid, "status", "start"),
       ),
       "lxc",
       input.node,
@@ -180,7 +168,7 @@ export class ProxmoxMcpServer {
   async lxcShutdown(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/lxc/${input.vmid}/status/shutdown`,
+        apiPath("nodes", input.node, "lxc", input.vmid, "status", "shutdown"),
       ),
       "lxc",
       input.node,
@@ -195,7 +183,7 @@ export class ProxmoxMcpServer {
   async lxcStop(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/lxc/${input.vmid}/status/stop`,
+        apiPath("nodes", input.node, "lxc", input.vmid, "status", "stop"),
       ),
       "lxc",
       input.node,
@@ -210,7 +198,7 @@ export class ProxmoxMcpServer {
   async lxcReboot(input: z.infer<typeof target>) {
     return taskReceipt(
       await this.client.post(
-        `nodes/${input.node}/lxc/${input.vmid}/status/reboot`,
+        apiPath("nodes", input.node, "lxc", input.vmid, "status", "reboot"),
       ),
       "lxc",
       input.node,
@@ -231,7 +219,7 @@ export class ProxmoxMcpServer {
     ...body
   }: z.infer<typeof target> & Record<string, unknown>) {
     return taskReceipt(
-      await this.client.post(`nodes/${node}/qemu`, body),
+      await this.client.post(apiPath("nodes", node, "qemu"), body),
       "qemu",
       node,
       body.vmid as number,
@@ -250,7 +238,7 @@ export class ProxmoxMcpServer {
     ...body
   }: z.infer<typeof target> & Record<string, unknown>) {
     return taskReceipt(
-      await this.client.post(`nodes/${node}/lxc`, body),
+      await this.client.post(apiPath("nodes", node, "lxc"), body),
       "lxc",
       node,
       body.vmid as number,
@@ -271,7 +259,10 @@ export class ProxmoxMcpServer {
     ...body
   }: z.infer<typeof target> & Record<string, unknown>) {
     return taskReceipt(
-      await this.client.put(`nodes/${node}/qemu/${vmid}/config`, body),
+      await this.client.put(
+        apiPath("nodes", node, "qemu", vmid, "config"),
+        body,
+      ),
       "qemu",
       node,
       vmid,
@@ -292,7 +283,10 @@ export class ProxmoxMcpServer {
     ...body
   }: z.infer<typeof target> & Record<string, unknown>) {
     return taskReceipt(
-      await this.client.put(`nodes/${node}/lxc/${vmid}/config`, body),
+      await this.client.put(
+        apiPath("nodes", node, "lxc", vmid, "config"),
+        body,
+      ),
       "lxc",
       node,
       vmid,
@@ -309,7 +303,10 @@ export class ProxmoxMcpServer {
     ...body
   }: z.infer<typeof target> & Record<string, unknown>) {
     return taskReceipt(
-      await this.client.put(`nodes/${node}/qemu/${vmid}/resize`, body),
+      await this.client.put(
+        apiPath("nodes", node, "qemu", vmid, "resize"),
+        body,
+      ),
       "qemu",
       node,
       vmid,
@@ -325,7 +322,9 @@ export class ProxmoxMcpServer {
       { ...input, operation: "qemu-delete" },
       async () =>
         taskReceipt(
-          await this.client.delete(`nodes/${input.node}/qemu/${input.vmid}`),
+          await this.client.delete(
+            apiPath("nodes", input.node, "qemu", input.vmid),
+          ),
           "qemu",
           input.node,
           input.vmid,
@@ -342,7 +341,9 @@ export class ProxmoxMcpServer {
       { ...input, operation: "lxc-delete" },
       async () =>
         taskReceipt(
-          await this.client.delete(`nodes/${input.node}/lxc/${input.vmid}`),
+          await this.client.delete(
+            apiPath("nodes", input.node, "lxc", input.vmid),
+          ),
           "lxc",
           input.node,
           input.vmid,
@@ -361,7 +362,7 @@ export class ProxmoxMcpServer {
       async () =>
         taskReceipt(
           await this.client.put(
-            `nodes/${input.node}/qemu/${input.vmid}/unlink`,
+            apiPath("nodes", input.node, "qemu", input.vmid, "unlink"),
             { idlist: input.disk },
           ),
           "qemu",
@@ -381,7 +382,7 @@ export class ProxmoxMcpServer {
       async () =>
         taskReceipt(
           await this.client.post(
-            `nodes/${input.node}/qemu/${input.vmid}/status/stop`,
+            apiPath("nodes", input.node, "qemu", input.vmid, "status", "stop"),
             { forceStop: 1 },
           ),
           "qemu",

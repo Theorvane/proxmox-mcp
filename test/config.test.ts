@@ -18,7 +18,20 @@ describe("configuration", () => {
         PROXMOX_BASE_URL: "https://host/",
         PROXMOX_TOKEN_ID: "id",
         PROXMOX_TOKEN_SECRET: "secret-value",
-      }).tlsVerify,
-    ).toBe(true);
+      }),
+    ).toMatchObject({ baseUrl: "https://host" });
+  });
+
+  it("rejects unsupported TLS verification disablement", () => {
+    expect(() =>
+      loadProxmoxConfig({
+        PROXMOX_BASE_URL: "https://host",
+        PROXMOX_TOKEN_ID: "id",
+        PROXMOX_TOKEN_SECRET: "secret-value",
+        PROXMOX_TLS_VERIFY: "false",
+      }),
+    ).toThrow(
+      "PROXMOX_TLS_VERIFY=false is unsupported: Node fetch always verifies TLS certificates; remove this setting and trust the server CA",
+    );
   });
 });

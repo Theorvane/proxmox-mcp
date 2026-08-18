@@ -89,7 +89,7 @@ git commit -m "build: bootstrap Proxmox MCP package"
 
 **Step 1: Write failing configuration tests**
 
-Cover required `PROXMOX_BASE_URL`, `PROXMOX_TOKEN_ID`, and `PROXMOX_TOKEN_SECRET`; reject non-HTTPS base URLs; default `PROXMOX_TLS_VERIFY` to `true`; accept only literal `true`/`false`; and ensure thrown messages do not echo supplied secret values.
+Cover required `PROXMOX_BASE_URL`, `PROXMOX_TOKEN_ID`, and `PROXMOX_TOKEN_SECRET`; reject non-HTTPS base URLs and unsupported `PROXMOX_TLS_VERIFY=false`; and ensure thrown messages do not echo supplied secret values.
 
 **Step 2: Run RED test**
 
@@ -99,7 +99,7 @@ Expected: FAIL because the parser is missing.
 
 **Step 3: Implement `loadProxmoxConfig(env)`**
 
-Return an immutable configuration object. Normalize the base URL without a trailing slash. Throw a typed safe configuration error containing variable names but never values. Keep TLS-disable startup warning on stderr only.
+Return an immutable configuration object. Normalize the base URL without a trailing slash. Throw a typed safe configuration error containing variable names but never values. TLS disabling is unsupported because Node's global fetch cannot safely alter certificate verification.
 
 **Step 4: Run focused tests and typecheck**
 

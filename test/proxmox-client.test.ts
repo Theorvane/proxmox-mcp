@@ -5,7 +5,6 @@ const config = {
   baseUrl: "https://pve.example",
   tokenId: "user@pam!token",
   tokenSecret: "secret",
-  tlsVerify: true,
 };
 
 describe("ProxmoxClient", () => {

@@ -4,7 +4,6 @@ export interface ProxmoxConfig {
   readonly baseUrl: string;
   readonly tokenId: string;
   readonly tokenSecret: string;
-  readonly tlsVerify: boolean;
 }
 
 export function loadProxmoxConfig(
@@ -33,15 +32,13 @@ export function loadProxmoxConfig(
   }
   if (url.protocol !== "https:")
     throw new ProxmoxConfigError("PROXMOX_BASE_URL must use HTTPS");
-  const tls = env.PROXMOX_TLS_VERIFY ?? "true";
-  if (tls !== "true" && tls !== "false")
+  if (env.PROXMOX_TLS_VERIFY === "false")
     throw new ProxmoxConfigError(
-      "PROXMOX_TLS_VERIFY must be literal true or false",
+      "PROXMOX_TLS_VERIFY=false is unsupported: Node fetch always verifies TLS certificates; remove this setting and trust the server CA",
     );
   return Object.freeze({
     baseUrl: url.toString().replace(/\/$/, ""),
     tokenId,
     tokenSecret,
-    tlsVerify: tls === "true",
   });
 }
