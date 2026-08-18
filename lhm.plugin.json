@@ -1,0 +1,13 @@
+{
+  "identifier": "theorvane-proxmox-mcp",
+  "name": "Proxmox MCP",
+  "version": "0.1.1",
+  "author": "Theorvane",
+  "description": "Safety-gated local stdio MCP server for Proxmox VE. Install only from a verified GitHub Release archive.",
+  "mcpServers": {
+    "proxmox-mcp": {
+      "command": "node",
+      "args": ["dist/index.js"]
+    }
+  }
+}
