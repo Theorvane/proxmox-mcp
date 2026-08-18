@@ -25,6 +25,10 @@ describe("release workflow contracts", () => {
     expect(release).toContain("git ls-remote --tags origin");
     expect(release).toContain('git rev-parse "$TAG^{commit}"');
     expect(release).toContain('git tag -a "$TAG" "$GITHUB_SHA"');
+    expect(release).toContain('git config user.name "github-actions[bot]"');
+    expect(release).toContain(
+      'git config user.email "41898282+github-actions[bot]@users.noreply.github.com"',
+    );
     expect(release).toContain("GH_TOKEN: ${{ github.token }}");
     expect(release).toContain("tag_name: ${{ steps.version.outputs.tag }}");
     expect(release).toContain("target_commitish: ${{ github.sha }}");
