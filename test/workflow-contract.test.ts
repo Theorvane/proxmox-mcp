@@ -28,6 +28,9 @@ describe("release workflow contracts", () => {
     expect(release).toContain("GH_TOKEN: ${{ github.token }}");
     expect(release).toContain("tag_name: ${{ steps.version.outputs.tag }}");
     expect(release).toContain("target_commitish: ${{ github.sha }}");
+    expect(release).toContain(
+      "softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65",
+    );
     expect(release).not.toMatch(/npm publish|NODE_AUTH_TOKEN|registry\.npmjs/i);
   });
 });

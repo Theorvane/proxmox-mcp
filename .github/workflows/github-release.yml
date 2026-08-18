@@ -40,7 +40,7 @@ jobs:
             git tag -a "$TAG" "$GITHUB_SHA" -m "Release $TAG"
             git push origin "refs/tags/$TAG"
           fi
-      - uses: softprops/action-gh-release@6cbd405e2e6e3b641cb130a1ac452b45297f1638
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
