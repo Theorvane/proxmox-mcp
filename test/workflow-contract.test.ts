@@ -14,7 +14,7 @@ describe("release workflow contracts", () => {
     expect(promotion).toContain('head.ref }}" = dev');
   });
 
-  it("verifies a GitHub Release archive without npm publication", () => {
+  it("publishes a new archive release without npm publication", () => {
     const release = workflow("github-release.yml");
     expect(release).toContain("branches: [main]");
     expect(release).toContain("name: Determine release intent");
@@ -25,13 +25,22 @@ describe("release workflow contracts", () => {
       "No release inputs changed; skipping immutable release reconciliation.",
     );
     expect(release).toContain("steps.release-intent.outputs.release == 'true'");
+    expect(release).toContain("node scripts/release-reconciliation.mjs");
+    expect(release).toContain("steps.reconciliation.outputs.state == 'new'");
+    expect(release).toContain(
+      "steps.reconciliation.outputs.state == 'existing'",
+    );
+    expect(release.indexOf("Resolve immutable release state")).toBeLessThan(
+      release.indexOf("Build and verify release archive"),
+    );
+    expect(release.indexOf("Build and verify release archive")).toBeLessThan(
+      release.indexOf("Create immutable release tag"),
+    );
     expect(release).toContain("npm run verify:release-archive");
     expect(release).toContain("GITHUB_SHA");
     expect(release).toContain("const version = pkg.version");
     expect(release).toContain("const semver = /^(0|[1-9]\\d*)");
     expect(release).toContain('TAG="v${VERSION}"');
-    expect(release).toContain("git ls-remote --tags origin");
-    expect(release).toContain('git rev-parse "$TAG^{commit}"');
     expect(release).toContain('git tag -a "$TAG" "$GITHUB_SHA"');
     expect(release).toContain('git config user.name "github-actions[bot]"');
     expect(release).toContain(
