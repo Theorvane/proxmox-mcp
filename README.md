@@ -4,6 +4,16 @@
 
 > **Status — current release: [v0.1.1](https://github.com/Theorvane/proxmox-mcp/releases/tag/v0.1.1).** The canonical distribution is the GitHub Release archive and its SHA-256 checksum. No npm package is provided or published.
 
+## Install the released Proxmox MCP
+
+For a local stdio installation, use the checksum-verified GitHub Release archive:
+
+- [GitHub Release v0.1.1](https://github.com/Theorvane/proxmox-mcp/releases/tag/v0.1.1)
+- [Archive asset](https://github.com/Theorvane/proxmox-mcp/releases/download/v0.1.1/proxmox-mcp-0.1.1.tar.gz)
+- [Checksum asset](https://github.com/Theorvane/proxmox-mcp/releases/download/v0.1.1/proxmox-mcp-0.1.1.tar.gz.sha256)
+
+There is no npm package. The [LobeHub Marketplace listing](https://lobehub.com/mcp/theorvane-proxmox-mcp) describes capabilities; it is not the local installation source. ClawHub is not currently published because a publicly installable OpenClaw wrapper/listing is not available.
+
 ## Quick install
 
 Download the v0.1.1 archive and checksum from GitHub Releases, verify them, and extract the archive. Do this on the machine where the MCP host will run.
