@@ -436,8 +436,7 @@ git commit -m "ci: enforce release-only main delivery"
 **Objective:** Provide truthful, version-neutral submission materials for ClawHub Plugins, MCP Server Hub, and LobeHub while leaving publication manual and deferred.
 
 **Files:**
-- Create: `plugins/openclaw-proxmox-mcp/README.md`
-- Create: `plugins/openclaw-proxmox-mcp/openclaw.plugin.json`
+- Superseded by Issue #13: `skills/proxmox-mcp-openclaw/SKILL.md` and its executable installer.
 - Create: `registry/lobehub-submission.md`
 - Create: `registry/mcpserverhub-submission.md`
 - Create: `registry/assets/README.md`
@@ -484,7 +483,7 @@ Expected: all commands pass; `git status` contains only intended tracked changes
 **Step 5: Commit**
 
 ```bash
-git add plugins registry test/directory-metadata-contract.test.ts README.md docs/guides/safety.md
+git add registry README.md docs/guides/safety.md
 git commit -m "docs: prepare MCP directory listing materials"
 ```
 
