@@ -17,6 +17,14 @@ describe("release workflow contracts", () => {
   it("verifies a GitHub Release archive without npm publication", () => {
     const release = workflow("github-release.yml");
     expect(release).toContain("branches: [main]");
+    expect(release).toContain("name: Determine release intent");
+    expect(release).toContain(
+      'node scripts/release-intent.mjs "$EVENT_BEFORE" "$GITHUB_SHA"',
+    );
+    expect(release).toContain(
+      "No release inputs changed; skipping immutable release reconciliation.",
+    );
+    expect(release).toContain("steps.release-intent.outputs.release == 'true'");
     expect(release).toContain("npm run verify:release-archive");
     expect(release).toContain("GITHUB_SHA");
     expect(release).toContain("const version = pkg.version");
