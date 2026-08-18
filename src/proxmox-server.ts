@@ -10,7 +10,7 @@ const target = z.object({ node, vmid: z.number().int().positive() });
 const confirmation = target.extend({ confirm: z.literal(true) });
 const text = (value: unknown) => JSON.stringify(value);
 
-@McpServer({ name: "proxmox-mcp", version: "0.1.0" })
+@McpServer({ name: "proxmox-mcp", version: "0.1.1" })
 export class ProxmoxMcpServer {
   public client!: ProxmoxClient;
   @McpTool({
