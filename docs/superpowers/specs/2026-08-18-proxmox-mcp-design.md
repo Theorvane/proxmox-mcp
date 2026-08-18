@@ -19,7 +19,6 @@ Deliver a local, stdio-based TypeScript MCP server that wraps the Proxmox VE RES
   - `PROXMOX_BASE_URL` — HTTPS origin of the Proxmox VE API.
   - `PROXMOX_TOKEN_ID` — token identifier in `user@realm!token-name` form.
   - `PROXMOX_TOKEN_SECRET` — token secret.
-  - `PROXMOX_TLS_VERIFY` — optional; defaults to `true`.
 - Never emit token values, authorization headers, or raw server exception payloads in logs or MCP results.
 
 ### First-release tools
@@ -56,7 +55,7 @@ Missing confirmation returns a stable MCP error that names the required fields a
 - Invalid calls do not issue HTTP requests.
 - Upstream non-success responses become generic, actionable MCP errors with the HTTP status and operation category, but no credentials or server-provided detail that may contain secrets.
 - Network, TLS, JSON-decoding, and unexpected handler failures are normalized in the same manner.
-- TLS certificate verification is enabled by default. Turning it off requires `PROXMOX_TLS_VERIFY=false` and must produce a startup warning without disclosing credentials.
+- TLS certificate verification is always enabled by Node's built-in fetch. `PROXMOX_TLS_VERIFY=false` is rejected with instructions to trust the server CA instead.
 
 ## Distribution and directory listing contract
 
