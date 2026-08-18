@@ -3,11 +3,556 @@
   "name": "Proxmox MCP",
   "version": "0.1.1",
   "author": "Theorvane",
-  "description": "Safety-gated local stdio MCP server for Proxmox VE. Install only from a verified GitHub Release archive.",
-  "mcpServers": {
-    "proxmox-mcp": {
-      "command": "node",
-      "args": ["dist/index.js"]
+  "authorUrl": "https://github.com/Theorvane",
+  "category": "tools",
+  "description": "Safety-gated MCP tools for administering Proxmox VE. The marketplace listing describes capabilities only; install the local stdio server from a checksum-verified GitHub Release archive.",
+  "homepage": "https://github.com/Theorvane/proxmox-mcp",
+  "icon": "https://www.proxmox.com/images/proxmox/Proxmox_logo_standard_hex_400px.png",
+  "tags": ["mcp", "proxmox", "self-hosted", "virtualization", "safety"],
+  "tools": [
+    {
+      "name": "cluster_version",
+      "description": "Read cluster version.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "cluster_resources",
+      "description": "List cluster resources.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["vm", "storage", "node"]
+          }
+        }
+      }
+    },
+    {
+      "name": "list_nodes",
+      "description": "List nodes.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "node_status",
+      "description": "Read node status.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          }
+        },
+        "required": ["node"]
+      }
+    },
+    {
+      "name": "list_storage",
+      "description": "List node storage.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          }
+        },
+        "required": ["node"]
+      }
+    },
+    {
+      "name": "list_qemu",
+      "description": "List QEMU VMs on a node.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          }
+        },
+        "required": ["node"]
+      }
+    },
+    {
+      "name": "list_lxc",
+      "description": "List LXC containers on a node.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          }
+        },
+        "required": ["node"]
+      }
+    },
+    {
+      "name": "list_tasks",
+      "description": "List node tasks.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          }
+        },
+        "required": ["node"]
+      }
+    },
+    {
+      "name": "task_status",
+      "description": "Read task status.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "upid": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["node", "upid"]
+      }
+    },
+    {
+      "name": "qemu_start",
+      "description": "Start a QEMU VM.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "qemu_shutdown",
+      "description": "Gracefully shut down a QEMU VM.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "qemu_stop",
+      "description": "Stop a QEMU VM.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "qemu_reboot",
+      "description": "Reboot a QEMU VM.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "lxc_start",
+      "description": "Start an LXC container.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "lxc_shutdown",
+      "description": "Gracefully shut down an LXC container.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "lxc_stop",
+      "description": "Stop an LXC container.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "lxc_reboot",
+      "description": "Reboot an LXC container.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "qemu_create",
+      "description": "Create a QEMU VM.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "memory": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "cores": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "lxc_create",
+      "description": "Create an LXC container.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "ostemplate": {
+            "type": "string",
+            "minLength": 1
+          },
+          "hostname": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["node", "vmid", "ostemplate", "hostname"]
+      }
+    },
+    {
+      "name": "qemu_update",
+      "description": "Update QEMU configuration.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "memory": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "cores": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "lxc_update",
+      "description": "Update LXC configuration.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "hostname": {
+            "type": "string",
+            "minLength": 1
+          },
+          "memory": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "cores": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": ["node", "vmid"]
+      }
+    },
+    {
+      "name": "qemu_resize_disk",
+      "description": "Resize a QEMU disk.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "disk": {
+            "type": "string",
+            "minLength": 1
+          },
+          "size": {
+            "type": "string",
+            "minLength": 2
+          }
+        },
+        "required": ["node", "vmid", "disk", "size"]
+      }
+    },
+    {
+      "name": "qemu_delete",
+      "description": "Permanently delete a QEMU VM; requires confirmation.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "confirm": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": ["node", "vmid", "confirm"]
+      }
+    },
+    {
+      "name": "lxc_delete",
+      "description": "Permanently delete an LXC container; requires confirmation.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "confirm": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": ["node", "vmid", "confirm"]
+      }
+    },
+    {
+      "name": "qemu_delete_disk",
+      "description": "Permanently delete an unused QEMU disk; requires confirmation.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "confirm": {
+            "const": true,
+            "type": "boolean"
+          },
+          "disk": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": ["node", "vmid", "confirm", "disk"]
+      }
+    },
+    {
+      "name": "qemu_force_stop",
+      "description": "Force-stop a QEMU VM; requires confirmation.",
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$"
+          },
+          "vmid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "confirm": {
+            "const": true,
+            "type": "boolean"
+          }
+        },
+        "required": ["node", "vmid", "confirm"]
+      }
     }
-  }
+  ]
 }
