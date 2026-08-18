@@ -21,8 +21,6 @@ jobs:
           MESSAGE='No release inputs changed; skipping immutable release reconciliation.'
           echo "$MESSAGE"
           echo "$MESSAGE" >> "$GITHUB_STEP_SUMMARY"
-      - if: steps.release-intent.outputs.release == 'true'
-        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && npm ci && npm run build && npm run release:archive && npm run verify:release-archive
       - id: version
         name: Derive immutable SemVer tag from package.json
         if: steps.release-intent.outputs.release == 'true'
@@ -36,28 +34,33 @@ jobs:
           ')"
           TAG="v${VERSION}"
           printf 'version=%s\ntag=%s\n' "$VERSION" "$TAG" >> "$GITHUB_OUTPUT"
-      - name: Verify or create the immutable release tag
+      - id: reconciliation
+        name: Resolve immutable release state
         if: steps.release-intent.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
+        run: node scripts/release-reconciliation.mjs "$TAG"
+      - name: Report existing immutable release
+        if: steps.reconciliation.outputs.state == 'existing'
+        run: |
+          MESSAGE='An immutable release already exists for this package version; skipping release publication.'
+          echo "$MESSAGE"
+          echo "$MESSAGE" >> "$GITHUB_STEP_SUMMARY"
+      - name: Build and verify release archive
+        if: steps.reconciliation.outputs.state == 'new'
+        run: test "$(git rev-parse HEAD)" = "$GITHUB_SHA" && npm ci && npm run build && npm run release:archive && npm run verify:release-archive
+      - name: Create immutable release tag
+        if: steps.reconciliation.outputs.state == 'new'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          RELEASE_TARGET="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json targetCommitish --jq .targetCommitish 2>/dev/null || true)"
-          if test -n "$RELEASE_TARGET"; then
-            git fetch --no-tags origin "$RELEASE_TARGET"
-            test "$(git rev-parse "$RELEASE_TARGET^{commit}")" = "$GITHUB_SHA"
-          fi
-          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
-            git fetch --no-tags origin "refs/tags/$TAG:refs/tags/$TAG"
-            test "$(git rev-parse "$TAG^{commit}")" = "$GITHUB_SHA"
-          else
-            git tag -a "$TAG" "$GITHUB_SHA" -m "Release $TAG"
-            git push origin "refs/tags/$TAG"
-          fi
+          git tag -a "$TAG" "$GITHUB_SHA" -m "Release $TAG"
+          git push origin "refs/tags/$TAG"
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
-        if: steps.release-intent.outputs.release == 'true'
+        if: steps.reconciliation.outputs.state == 'new'
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           target_commitish: ${{ github.sha }}
